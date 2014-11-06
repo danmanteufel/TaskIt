@@ -114,14 +114,25 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         }
     }
     
+    func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [AnyObject]? {
+        let actionTitle = indexPath.section == 0 ? "Complete" : "Incomplete"
+        var completionButton = UITableViewRowAction(style: .Normal,
+                                                    title: actionTitle,
+                                                    handler: {(action, index) in
+                                                        var task = self.tasker.baseArray[indexPath.section][indexPath.row]
+                                                        task.completed = !task.completed
+                                                        self.tasker.baseArray[indexPath.section].removeAtIndex(indexPath.row)
+                                                        self.tasker.baseArray[indexPath.section == 0 ? 1 : 0] += [task]
+                                                        self.sortAndReload()})
+        completionButton.backgroundColor = .lightGrayColor()
+        
+        return [completionButton]
+    }
+    
+    //This enables the swipe to take action functionality even though it's empty
     func tableView(tableView: UITableView,
                    commitEditingStyle editingStyle: UITableViewCellEditingStyle,
                    forRowAtIndexPath indexPath: NSIndexPath) {
-        var task = tasker.baseArray[indexPath.section][indexPath.row]
-        task.completed = !task.completed
-        tasker.baseArray[indexPath.section].removeAtIndex(indexPath.row)
-        tasker.baseArray[indexPath.section == 0 ? 1 : 0] += [task]
-        sortAndReload()
     }
     
     //MARK: TaskDetailViewControllerDelegate
