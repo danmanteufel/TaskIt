@@ -207,7 +207,7 @@
                     </view>
                     <connections>
                         <outlet property="dueDatePicker" destination="t93-2d-EJu" id="eBG-rB-m5V"/>
-                        <outlet property="subtastTextField" destination="pWu-eg-1Rr" id="0gC-yC-JDc"/>
+                        <outlet property="subtaskTextField" destination="pWu-eg-1Rr" id="ark-3D-94A"/>
                         <outlet property="taskTextField" destination="J4h-Ay-s9q" id="onr-YA-Fdn"/>
                     </connections>
                 </viewController>

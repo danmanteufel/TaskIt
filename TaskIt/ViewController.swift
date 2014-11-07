@@ -7,11 +7,11 @@
 //
 
 import UIKit
+import CoreData
 
 //MARK: - Root View Controller
-class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, TaskDetailViewControllerDelegate, AddTaskViewControllerDelegate {
+class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, NSFetchedResultsControllerDelegate {
     
-    var tasker = TaskIt()
     var selectedIndexPath: NSIndexPath?
 
     @IBOutlet weak var tableView: UITableView!
@@ -19,9 +19,16 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let taskArray = [exampleTask1, exampleTask2, exampleTask3]
-        let completedArray = [exampleTask4]
-        tasker.baseArray = [taskArray, completedArray]
+        frc = NSFetchedResultsController(fetchRequest: taskFetchRequest(),
+                                         managedObjectContext: moc!,
+                                         sectionNameKeyPath: "completed",
+                                         cacheName: nil)
+        frc.delegate = self
+        frc.performFetch(nil)
+        if frc.sections!.count == 0 {
+            addExampleData()
+        }
+        
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -29,8 +36,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         if (tableView.indexPathForSelectedRow() != nil) {
             tableView.deselectRowAtIndexPath(tableView.indexPathForSelectedRow()!, animated: false)
         }
-
-        sortAndReload()
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
@@ -38,43 +43,61 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         switch segue.identifier! {
         case "Show Task Detail":
             let destVC = segue.destinationViewController as TaskDetailViewController
-            let indexPath = tableView.indexPathForSelectedRow() //Could also go through sender
-            destVC.detailTaskModel = tasker.baseArray[indexPath!.section][indexPath!.row]
-            destVC.delegate = self
+            destVC.indexPath = tableView.indexPathForSelectedRow()! //Could also go through sender
+
         case "Show Add Task":
             let destVC = segue.destinationViewController as AddTaskViewController
-            destVC.delegate = self
         default:
             break
         }
     }
     
     //MARK: Helper Functions
-    func sortAndReload() {
-        
-        //THIS IS EQUIVALENT TO THE CLOSURE BELOW
-        //        func sortByDate (taskOne: TaskModel, taskTwo: TaskModel) -> Bool {
-        //            return taskOne.date.timeIntervalSince1970 < taskTwo.date.timeIntervalSince1970
-        //        }
-        //
-        //        tasker.taskArray = tasker.taskArray.sorted(sortByDate)
-        
-        for (index, _) in enumerate (tasker.baseArray) {
-            tasker.baseArray[index] = tasker.baseArray[index].sorted{
-                (taskOne: TaskModel, taskTwo: TaskModel) -> Bool in
-                return taskOne.date.timeIntervalSince1970 < taskTwo.date.timeIntervalSince1970
-            }
+    
+    func taskFetchRequest() -> NSFetchRequest {
+        let fetchRequest = NSFetchRequest(entityName: "TaskModel")
+        let sortDescriptor = NSSortDescriptor(key: "date", ascending: true)
+        let completedDescriptor = NSSortDescriptor(key: "completed", ascending: true)
+        fetchRequest.sortDescriptors = [completedDescriptor, sortDescriptor] //could have multiple sorts
+        return fetchRequest
+    }
+    
+    func addExampleData() {
+
+        var exampleDataToAdd = [["task": "Study French",
+                                 "subtask": "Verbs",
+                                 "date": Date.fromYear(2014, month: 11, day: 3),
+                                 "completed": false],
+                                ["task": "Eat Dinner",
+                                 "subtask": "Burgers",
+                                 "date": Date.fromYear(2014, month: 11, day: 5),
+                                 "completed": false],
+                                ["task": "Gym",
+                                 "subtask": "Leg Day",
+                                 "date": Date.fromYear(2014, month: 11, day: 4),
+                                 "completed": false],
+                                ["task": "Code",
+                                 "subtask": "Task Project",
+                                 "date": Date.fromYear(2014, month: 11, day: 1),
+                                 "completed": true]]
+        for data in exampleDataToAdd {
+            let entityDescription = NSEntityDescription.entityForName("TaskModel", inManagedObjectContext: moc!) //Maps entity to persistent store
+            let task = TaskModel(entity: entityDescription!, insertIntoManagedObjectContext: moc!) //
+            task.task = data["task"] as String
+            task.subtask = data["subtask"] as String
+            task.date = data["date"] as NSDate
+            task.completed = data["completed"] as Bool
         }
-        tableView.reloadData()
+        appDelegate.saveContext()
     }
     
     //MARK: UITableViewDataSource
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return tasker.baseArray.count
+        return frc.sections!.count
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return tasker.baseArray[section].count
+        return frc.sections![section].numberOfObjects
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
@@ -82,7 +105,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         //cell.editingAccessoryView = TaskCell.setCompletionAccessory()
         //cell.editingAccessoryType = UITableViewCellAccessoryType.Checkmark
         
-        let task = tasker.baseArray[indexPath.section][indexPath.row]
+        let task = frc.objectAtIndexPath(indexPath) as TaskModel
         
         cell.taskLabel.text = task.task
         cell.subtaskLabel.text = task.subtask
@@ -103,27 +126,45 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if section == 0 {
+        //THIS SECTION WOULD NEED TO BE UPDATED TO HAVE THE SECTIONS RIGHT WITH NO EVENTS
+        let sectionCount = frc.sections!.count
+        var complete = true
+        if sectionCount == 1 {
+            let firstTask = frc.objectAtIndexPath(NSIndexPath(forRow: 0, inSection: 0)) as TaskModel
+            complete = Bool(firstTask.completed)
+        }
+        
+        if sectionCount == 0 {
+            return "Add Tasks"
+        } else if sectionCount == 1 && !complete {
             return "To Do"
-        }
-        else if section == 1 {
+        } else if sectionCount == 1 && complete {
             return "Completed"
-        }
-        else {
-            return "?"
+        } else if section == 0 {
+            return "To Do"
+        } else {
+            return "Completed"
         }
     }
     
     func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [AnyObject]? {
-        let actionTitle = indexPath.section == 0 ? "Complete" : "Incomplete"
+        var actionTitle = indexPath.section == 0 ? "Complete" : "Incomplete"
+        
+        let sectionCount = frc.sections!.count
+        if sectionCount == 1 {
+            let firstTask = frc.objectAtIndexPath(NSIndexPath(forRow: 0, inSection: 0)) as TaskModel
+            if Bool(firstTask.completed) {
+                actionTitle = "Incomplete"
+            }
+            
+        }
+        
         var completionButton = UITableViewRowAction(style: .Normal,
                                                     title: actionTitle,
                                                     handler: {(action, index) in
-                                                        var task = self.tasker.baseArray[indexPath.section][indexPath.row]
-                                                        task.completed = !task.completed
-                                                        self.tasker.baseArray[indexPath.section].removeAtIndex(indexPath.row)
-                                                        self.tasker.baseArray[indexPath.section == 0 ? 1 : 0] += [task]
-                                                        self.sortAndReload()})
+                                                        var task = frc.objectAtIndexPath(index) as TaskModel
+                                                        task.completed = !Bool(task.completed)
+                                                        appDelegate.saveContext()})
         completionButton.backgroundColor = .lightGrayColor()
         
         return [completionButton]
@@ -135,45 +176,34 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                    forRowAtIndexPath indexPath: NSIndexPath) {
     }
     
-    //MARK: TaskDetailViewControllerDelegate
-    func updateTask(task: TaskModel) {
-        let indexPath = tableView.indexPathForSelectedRow()!
-        tasker.baseArray[indexPath.section][indexPath.row] = task
-        //tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .None)
-        //Only because we reload all after sorting in viewDidAppear
-    }
-    
-    //MARK: AddTaskViewControllerDelegate
-    func addTask(task: TaskModel) {
-        tasker.baseArray[0] += [task]
+    //MARK: NSFetchedResultsControllerDelegate
+    func controllerDidChangeContent(controller: NSFetchedResultsController) {
+        tableView.reloadData()
     }
 }
 
 //MARK: - Task Detail View Controller
-protocol TaskDetailViewControllerDelegate {
-    func updateTask(TaskModel)
-}
-
 class TaskDetailViewController: UIViewController, UITextFieldDelegate {
-    var detailTaskModel = TaskModel()
-    var delegate: TaskDetailViewControllerDelegate?
+    var indexPath = NSIndexPath()
     
     @IBOutlet weak var taskTextField: UITextField!
     @IBOutlet weak var subtaskTextField: UITextField!
     @IBOutlet weak var dueDatePicker: UIDatePicker!
     
     override func viewDidLoad() {
+        let detailTaskModel = frc.objectAtIndexPath(indexPath) as TaskModel
         taskTextField.text = detailTaskModel.task
         subtaskTextField.text = detailTaskModel.subtask
         dueDatePicker.date = detailTaskModel.date
     }
     
     @IBAction func saveButtonPressed(sender: UIBarButtonItem) {
-        var task = TaskModel(task: taskTextField.text,
-                             subtask: subtaskTextField.text,
-                             date: dueDatePicker.date,
-                             completed: false)
-        delegate?.updateTask(task)
+        let detailTaskModel = frc.objectAtIndexPath(indexPath) as TaskModel
+        detailTaskModel.task = taskTextField.text
+        detailTaskModel.subtask = subtaskTextField.text
+        detailTaskModel.date = dueDatePicker.date
+        appDelegate.saveContext() //saved updates to entity we passed in
+        
         navigationController?.popViewControllerAnimated(true)
     }
     
@@ -185,16 +215,10 @@ class TaskDetailViewController: UIViewController, UITextFieldDelegate {
 }
 
 //MARK: - Add Task View Controller
-protocol AddTaskViewControllerDelegate {
-    func addTask(TaskModel)
-}
-
 class AddTaskViewController: UIViewController, UITextFieldDelegate {
     
-    var delegate: AddTaskViewControllerDelegate?
-    
     @IBOutlet weak var taskTextField: UITextField!
-    @IBOutlet weak var subtastTextField: UITextField!
+    @IBOutlet weak var subtaskTextField: UITextField!
     @IBOutlet weak var dueDatePicker: UIDatePicker!
     
     override func viewDidLoad() {
@@ -207,11 +231,19 @@ class AddTaskViewController: UIViewController, UITextFieldDelegate {
     }
     
     @IBAction func addButtonPressed(sender: UIButton) {
-        var task = TaskModel(task: taskTextField.text,
-                             subtask: subtastTextField.text,
-                             date: dueDatePicker.date,
-                             completed: false)
-        delegate?.addTask(task)
+        let entityDescription = NSEntityDescription.entityForName("TaskModel", inManagedObjectContext: moc!) //Maps entity to persistent store
+        let task = TaskModel(entity: entityDescription!, insertIntoManagedObjectContext: moc!) //
+        task.task = taskTextField.text
+        task.subtask = subtaskTextField.text
+        task.date = dueDatePicker.date
+        task.completed = false
+        appDelegate.saveContext()
+        
+//        var request = NSFetchRequest(entityName: "TaskModel")
+//        var error: NSError? = nil
+//        var results = moc!.executeFetchRequest(request, error: &error)!
+//        
+//        print(results)
         dismissViewControllerAnimated(true, completion: nil)
     }
     
@@ -240,18 +272,13 @@ class TaskCell: UITableViewCell {
 //MARK: - Model
 
 //MARK: Defines
+let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate //Next line doesn't work without typecast
+let moc = appDelegate.managedObjectContext
+
+//MARK: Globals
+var frc = NSFetchedResultsController()
 
 //MARK: Structs
-struct TaskIt {
-    var baseArray: [[TaskModel]] = [[]]
-}
-
-struct TaskModel {
-    var task = ""
-    var subtask = ""
-    var date = NSDate(timeIntervalSinceNow: 0)
-    var completed = false
-}
 
 //MARK: Classes
 class Date {
@@ -271,20 +298,3 @@ class Date {
     }
 }
 
-//MARK: Example Data
-let exampleTask1 = TaskModel(task: "Study French",
-                             subtask: "Verbs",
-                             date: Date.fromYear(2014, month: 11, day: 3),
-                             completed: false)
-let exampleTask2 = TaskModel(task: "Eat Dinner",
-                             subtask: "Burgers",
-                             date: Date.fromYear(2014, month: 11, day: 5),
-                             completed: false)
-let exampleTask3 = TaskModel(task : "Gym",
-                             subtask: "Leg Day",
-                             date: Date.fromYear(2014, month: 11, day: 4),
-                             completed: false)
-let exampleTask4 = TaskModel(task: "Code",
-                             subtask: "Task Project",
-                             date: Date.fromYear(2014, month: 11, day: 1),
-                             completed: true)
