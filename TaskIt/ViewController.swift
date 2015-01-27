@@ -127,23 +127,40 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         //THIS SECTION WOULD NEED TO BE UPDATED TO HAVE THE SECTIONS RIGHT WITH NO EVENTS
-        let sectionCount = frc.sections!.count
-        var complete = true
-        if sectionCount == 1 {
-            let firstTask = frc.objectAtIndexPath(NSIndexPath(forRow: 0, inSection: 0)) as TaskModel
-            complete = Bool(firstTask.completed)
-        }
+//        let sectionCount = frc.sections!.count
+//        var complete = true
+//        if sectionCount == 1 {
+//            let firstTask = frc.objectAtIndexPath(NSIndexPath(forRow: 0, inSection: 0)) as TaskModel
+//            complete = Bool(firstTask.completed)
+//        }
+//
+//        if sectionCount == 0 {
+//            return "Add Tasks"
+//        } else if sectionCount == 1 && !complete {
+//            return "To Do"
+//        } else if sectionCount == 1 && complete {
+//            return "Completed"
+//        } else if section == 0 {
+//            return "To Do"
+//        } else {
+//            return "Completed"
+//        }
+//MY IMPLEMENTATION -- CLASS IMPLEMENTATION BELOW
         
-        if sectionCount == 0 {
-            return "Add Tasks"
-        } else if sectionCount == 1 && !complete {
-            return "To Do"
-        } else if sectionCount == 1 && complete {
-            return "Completed"
-        } else if section == 0 {
-            return "To Do"
+        if frc.sections?.count == 1 {
+            let fetchedObjects = frc.fetchedObjects!
+            let testTask: TaskModel = fetchedObjects[0] as TaskModel
+            if testTask.completed == true {
+                return "Completed"
+            } else {
+                return "To Do"
+            }
         } else {
-            return "Completed"
+            if section == 0 {
+                return "To Do"
+            } else {
+                return "Completed"
+            }
         }
     }
     
