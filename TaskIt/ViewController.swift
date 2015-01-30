@@ -302,7 +302,7 @@ class SettingsViewController: UIViewController, UITableViewDataSource, UITableVi
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Done",
                                                            style: .Plain,
                                                            target: self,
-                                                           action: Selector("doneBarButtonItemPressed"))
+                                                           action: Selector("doneBarButtonItemPressed:"))
         
     }
     
