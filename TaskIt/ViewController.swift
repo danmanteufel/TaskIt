@@ -9,6 +9,10 @@
 import UIKit
 import CoreData
 
+//MARK: VCDefines
+let kShouldCapitalizeTaskKey = "Should Capitalize Task"
+let kCompleteNewTodoKey = "Complete New Todo"
+
 //MARK: - Root View Controller
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, NSFetchedResultsControllerDelegate {
     
@@ -271,6 +275,117 @@ class AddTaskViewController: UIViewController, UITextFieldDelegate {
     }
 }
 
+//MARK: - Settings View Controller
+class SettingsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    //MARK: Defines
+    let kVersionNumber = "1.0"
+    let kNumberOfSections = 2
+    let kCapitalizeCellID = "Capitalize Cell"
+    let kCompleteNewTodoCellID = "Complete New Todo Cell"
+    let kNoCapsMessage = "No - Do Not Capitalize"
+    let kYesCapsMessage = "Yes - Capitalize"
+    let kDoNotCompleteMessage = "Do Not Complete Task"
+    let kCompleteMessage = "Complete Task"
+    let kCapitalizeTVTitle = "Capitalize New Task?"
+    let kCompleteNewTaskTVTitle = "Complete New Task?"
+    
+    //MARK: Globals
+    @IBOutlet weak var capitalizeTV: UITableView!
+    @IBOutlet weak var completeNewTodoTV: UITableView!
+    @IBOutlet weak var versionLabel: UILabel!
+
+    //MARK: Flow Functions
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        title = "Settings"
+        versionLabel.text = kVersionNumber
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Done",
+                                                           style: .Plain,
+                                                           target: self,
+                                                           action: Selector("doneBarButtonItemPressed"))
+        
+    }
+    
+    func doneBarButtonItemPressed(barButtonItem: UIBarButtonItem) {
+        navigationController?.popViewControllerAnimated(true)
+    }
+    
+    //MARK: Helper Functions
+    
+    //MARK: UITableViewDataSource
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        if tableView == capitalizeTV {
+            var capitalizeCell = tableView.dequeueReusableCellWithIdentifier(kCapitalizeCellID) as UITableViewCell
+            if indexPath.row == 0 {
+                capitalizeCell.textLabel?.text = kNoCapsMessage
+                if NSUserDefaults.standardUserDefaults().boolForKey(kShouldCapitalizeTaskKey) {
+                    capitalizeCell.accessoryType = .None
+                } else {
+                    capitalizeCell.accessoryType = .Checkmark
+                }
+            } else {
+                capitalizeCell.textLabel?.text = kYesCapsMessage
+                if NSUserDefaults.standardUserDefaults().boolForKey(kShouldCapitalizeTaskKey) {
+                    capitalizeCell.accessoryType = .Checkmark
+                } else {
+                    capitalizeCell.accessoryType = .None
+                }
+            }
+            return capitalizeCell
+        } else {
+            var completeNewTodoCell = tableView.dequeueReusableCellWithIdentifier(kCompleteNewTodoCellID) as UITableViewCell
+            if indexPath.row == 0 {
+                completeNewTodoCell.textLabel?.text = kDoNotCompleteMessage
+                if NSUserDefaults.standardUserDefaults().boolForKey(kCompleteNewTodoKey) {
+                    completeNewTodoCell.accessoryType = .None
+                } else {
+                    completeNewTodoCell.accessoryType = .Checkmark
+                }
+            } else {
+                completeNewTodoCell.textLabel?.text = kCompleteMessage
+                if NSUserDefaults.standardUserDefaults().boolForKey(kCompleteNewTodoKey) {
+                    completeNewTodoCell.accessoryType = .Checkmark
+                } else {
+                    completeNewTodoCell.accessoryType = .None
+                }
+            }
+            return completeNewTodoCell
+        }
+    }
+    
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return kNumberOfSections
+    }
+    
+    func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        if tableView == capitalizeTV {
+            return kCapitalizeTVTitle
+        } else {
+            return kCompleteNewTaskTVTitle
+        }
+    }
+    
+    //MARK: UITableViewDelegate
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        if tableView == capitalizeTV {
+            if indexPath.row == 0 {
+                NSUserDefaults.standardUserDefaults().setBool(false, forKey: kShouldCapitalizeTaskKey)
+            } else {
+                NSUserDefaults.standardUserDefaults().setBool(true, forKey: kShouldCapitalizeTaskKey)
+            }
+        } else {
+            if indexPath.row == 0 {
+                NSUserDefaults.standardUserDefaults().setBool(false, forKey: kCompleteNewTodoKey)
+            } else {
+                NSUserDefaults.standardUserDefaults().setBool(true, forKey: kCompleteNewTodoKey)
+            }
+        }
+        NSUserDefaults.standardUserDefaults().synchronize()
+        tableView.reloadData()
+    }
+}
+
+
 //MARK: - View
 class TaskCell: UITableViewCell {
     
@@ -291,6 +406,7 @@ class TaskCell: UITableViewCell {
 //MARK: Defines
 let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate //Next line doesn't work without typecast
 let moc = appDelegate.managedObjectContext
+let kAlreadyLoadedKey = "Already Loaded Once"
 
 //MARK: Globals
 var frc = NSFetchedResultsController()

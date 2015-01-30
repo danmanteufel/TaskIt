@@ -17,6 +17,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
+        if NSUserDefaults.standardUserDefaults().boolForKey(kAlreadyLoadedKey) == false {
+            NSUserDefaults.standardUserDefaults().setBool(true, forKey: kAlreadyLoadedKey)
+            NSUserDefaults.standardUserDefaults().setBool(false, forKey: kShouldCapitalizeTaskKey)//Do we need these if the initial default is false?
+            NSUserDefaults.standardUserDefaults().setBool(false, forKey: kCompleteNewTodoKey)
+            NSUserDefaults.standardUserDefaults().synchronize()
+        }
         return true
     }
 
