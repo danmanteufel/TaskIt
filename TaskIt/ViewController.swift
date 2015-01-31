@@ -14,14 +14,17 @@ let kShouldCapitalizeTaskKey = "Should Capitalize Task"
 let kCompleteNewTodoKey = "Complete New Todo"
 
 //MARK: - Root View Controller
-class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, NSFetchedResultsControllerDelegate {
-    
+class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, NSFetchedResultsControllerDelegate, TaskDetailViewControllerDelegate, AddTaskViewControllerDelegate {
+    //MARK: Globals
     var selectedIndexPath: NSIndexPath?
 
     @IBOutlet weak var tableView: UITableView!
     
+    //MARK: Flow Functions
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        view.backgroundColor = UIColor(patternImage: UIImage(named: "Background")!)
         
         frc = NSFetchedResultsController(fetchRequest: taskFetchRequest(),
                                          managedObjectContext: moc!,
@@ -48,16 +51,17 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         case "Show Task Detail":
             let destVC = segue.destinationViewController as TaskDetailViewController
             destVC.indexPath = tableView.indexPathForSelectedRow()! //Could also go through sender
+            destVC.delegate = self
 
         case "Show Add Task":
             let destVC = segue.destinationViewController as AddTaskViewController
+            destVC.delegate = self
         default:
             break
         }
     }
     
     //MARK: Helper Functions
-    
     func taskFetchRequest() -> NSFetchRequest {
         let fetchRequest = NSFetchRequest(entityName: "TaskModel")
         let sortDescriptor = NSSortDescriptor(key: "date", ascending: true)
@@ -95,6 +99,12 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         appDelegate.saveContext()
     }
     
+    func showAlert(message: String = "Contratulations") {
+        var alert = UIAlertController(title: "Change Made!", message: message, preferredStyle: .Alert)
+        alert.addAction(UIAlertAction(title: "Ok", style: .Default, handler: nil))
+        presentViewController(alert, animated: true, completion: nil)
+    }
+    
     //MARK: UITableViewDataSource
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         return frc.sections!.count
@@ -119,6 +129,13 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
         return cell
     }
+    
+//    func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+//        var header = tableView.headerViewForSection(section)
+//        header?.backgroundColor = .yellowColor()
+//        header?.backgroundView?.backgroundColor = .yellowColor()
+//        return header
+//    }
     
     //MARK: UITableViewDelegate
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
@@ -168,6 +185,10 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         }
     }
     
+    func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+        cell.backgroundColor = .clearColor()
+    }
+    
     func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [AnyObject]? {
         var actionTitle = indexPath.section == 0 ? "Complete" : "Incomplete"
         
@@ -201,17 +222,42 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
         tableView.reloadData()
     }
+    
+    //MARK: TaskDetailViewControllerDelegate
+    func taskDetailEdited() {
+        showAlert()
+    }
+    
+    //MARK: AddTaskViewControllerDelegate
+    func addTaskCanceled(message: String) {
+        showAlert(message: message)
+    }
+    
+    func addTask(message: String) {
+        showAlert(message: message)
+    }
 }
 
 //MARK: - Task Detail View Controller
+@objc protocol TaskDetailViewControllerDelegate {//Have to use objc for optional
+    optional func taskDetailEdited()
+}
+
 class TaskDetailViewController: UIViewController, UITextFieldDelegate {
+    //MARK: Defines
+    
+    //MARK: Globals
     var indexPath = NSIndexPath()
+    var delegate: TaskDetailViewControllerDelegate?
     
     @IBOutlet weak var taskTextField: UITextField!
     @IBOutlet weak var subtaskTextField: UITextField!
     @IBOutlet weak var dueDatePicker: UIDatePicker!
     
+    //MARK: Flow Functions
     override func viewDidLoad() {
+        view.backgroundColor = UIColor(patternImage: UIImage(named: "Background")!)
+
         let detailTaskModel = frc.objectAtIndexPath(indexPath) as TaskModel
         taskTextField.text = detailTaskModel.task
         subtaskTextField.text = detailTaskModel.subtask
@@ -226,7 +272,10 @@ class TaskDetailViewController: UIViewController, UITextFieldDelegate {
         appDelegate.saveContext() //saved updates to entity we passed in
         
         navigationController?.popViewControllerAnimated(true)
+        delegate?.taskDetailEdited!() //Um, not great since we called it optional.
     }
+    
+    //MARK: Helper Functions
     
     //MARK: UITextFieldDelegate
     func textFieldShouldReturn(textField: UITextField) -> Bool {
@@ -236,28 +285,58 @@ class TaskDetailViewController: UIViewController, UITextFieldDelegate {
 }
 
 //MARK: - Add Task View Controller
+protocol AddTaskViewControllerDelegate {
+    func addTask(message: String)
+    func addTaskCanceled(message: String)
+}
+
 class AddTaskViewController: UIViewController, UITextFieldDelegate {
+    //MARK: Defines
     
+    //MARK: Globals
     @IBOutlet weak var taskTextField: UITextField!
     @IBOutlet weak var subtaskTextField: UITextField!
     @IBOutlet weak var dueDatePicker: UIDatePicker!
     
+    var delegate: AddTaskViewControllerDelegate?
+    
+    //MARK: Flow Functions
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = UIColor(patternImage: UIImage(named: "Background")!)
+
         dueDatePicker.date = Date.now()
     }
     
     @IBAction func cancelButtonPressed(sender: UIButton) {
+        //delegate?.addTaskCanceled("No Task Added")//WRONG, MUST BE CALLED AFTER YOU DISMISS
         dismissViewControllerAnimated(true, completion: nil)
+        delegate?.addTaskCanceled("No Task Added")
     }
     
     @IBAction func addButtonPressed(sender: UIButton) {
         let entityDescription = NSEntityDescription.entityForName("TaskModel", inManagedObjectContext: moc!) //Maps entity to persistent store
         let task = TaskModel(entity: entityDescription!, insertIntoManagedObjectContext: moc!) //
-        task.task = taskTextField.text
+        
+//        if NSUserDefaults.standardUserDefaults().boolForKey(kShouldCapitalizeTaskKey) {
+//            task.task = taskTextField.text.capitalizedString
+//        } else {
+//            task.task = taskTextField.text
+//  
+//        }
+        
+        task.task = NSUserDefaults.standardUserDefaults().boolForKey(kShouldCapitalizeTaskKey) ? taskTextField.text.capitalizedString : taskTextField.text
         task.subtask = subtaskTextField.text
         task.date = dueDatePicker.date
-        task.completed = false
+        
+//        if NSUserDefaults.standardUserDefaults().boolForKey(kCompleteNewTodoKey) {
+//            task.completed = true
+//        } else {
+//            task.completed = false
+//        }
+        
+        task.completed = NSUserDefaults.standardUserDefaults().boolForKey(kCompleteNewTodoKey)
+        
         appDelegate.saveContext()
         
 //        var request = NSFetchRequest(entityName: "TaskModel")
@@ -265,10 +344,14 @@ class AddTaskViewController: UIViewController, UITextFieldDelegate {
 //        var results = moc!.executeFetchRequest(request, error: &error)!
 //        
 //        print(results)
+        
         dismissViewControllerAnimated(true, completion: nil)
+        delegate?.addTask("Task Added")
     }
     
-    //UITextFieldDelegate
+    //MARK: Helper Functions
+    
+    //MARK: UITextFieldDelegate
     func textFieldShouldReturn(textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
@@ -297,13 +380,14 @@ class SettingsViewController: UIViewController, UITableViewDataSource, UITableVi
     //MARK: Flow Functions
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = UIColor(patternImage: UIImage(named: "Background")!)
+
         title = "Settings"
         versionLabel.text = kVersionNumber
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Done",
                                                            style: .Plain,
                                                            target: self,
                                                            action: Selector("doneBarButtonItemPressed:"))
-        
     }
     
     func doneBarButtonItemPressed(barButtonItem: UIBarButtonItem) {
@@ -400,6 +484,8 @@ class TaskCell: UITableViewCell {
 //        return completionBox
 //    }
 }
+
+
 
 //MARK: - Model
 
