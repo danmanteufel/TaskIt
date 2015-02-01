@@ -16,6 +16,7 @@
 		064F39C41A0C681900BF7964 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 064F39C31A0C681900BF7964 /* CoreData.framework */; };
 		064F39F81A0C6C1F00BF7964 /* TaskItModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 064F39F61A0C6C1F00BF7964 /* TaskItModel.xcdatamodeld */; };
 		064F39FA1A0C6D3B00BF7964 /* TaskModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 064F39F91A0C6D3B00BF7964 /* TaskModel.swift */; };
+		06A5ADAE1A7EBF5400B9900A /* ModelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06A5ADAD1A7EBF5400B9900A /* ModelManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,6 +43,8 @@
 		064F39C31A0C681900BF7964 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		064F39F71A0C6C1F00BF7964 /* TaskItModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TaskItModel.xcdatamodel; sourceTree = "<group>"; };
 		064F39F91A0C6D3B00BF7964 /* TaskModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TaskModel.swift; path = ../TaskModel.swift; sourceTree = "<group>"; };
+		06A5ADAC1A7EBDE300B9900A /* TaskIt.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = TaskIt.entitlements; sourceTree = "<group>"; };
+		06A5ADAD1A7EBF5400B9900A /* ModelManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,11 +87,13 @@
 		064F39A01A07052A00BF7964 /* TaskIt */ = {
 			isa = PBXGroup;
 			children = (
+				06A5ADAC1A7EBDE300B9900A /* TaskIt.entitlements */,
 				064F39A31A07052A00BF7964 /* AppDelegate.swift */,
 				064F39A71A07052A00BF7964 /* Main.storyboard */,
 				064F39A51A07052A00BF7964 /* ViewController.swift */,
 				064F39F91A0C6D3B00BF7964 /* TaskModel.swift */,
 				064F39F61A0C6C1F00BF7964 /* TaskItModel.xcdatamodeld */,
+				06A5ADAD1A7EBF5400B9900A /* ModelManager.swift */,
 				064F39AA1A07052A00BF7964 /* Images.xcassets */,
 				064F39AC1A07052A00BF7964 /* LaunchScreen.xib */,
 				064F39A11A07052A00BF7964 /* Supporting Files */,
@@ -171,6 +176,12 @@
 				TargetAttributes = {
 					064F399D1A07052A00BF7964 = {
 						CreatedOnToolsVersion = 6.1;
+						DevelopmentTeam = GTNZ9454WL;
+						SystemCapabilities = {
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 					064F39B21A07052A00BF7964 = {
 						CreatedOnToolsVersion = 6.1;
@@ -224,6 +235,7 @@
 			files = (
 				064F39A61A07052A00BF7964 /* ViewController.swift in Sources */,
 				064F39F81A0C6C1F00BF7964 /* TaskItModel.xcdatamodeld in Sources */,
+				06A5ADAE1A7EBF5400B9900A /* ModelManager.swift in Sources */,
 				064F39FA1A0C6D3B00BF7964 /* TaskModel.swift in Sources */,
 				064F39A41A07052A00BF7964 /* AppDelegate.swift in Sources */,
 			);
@@ -350,9 +362,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TaskIt/TaskIt.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = TaskIt/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -360,9 +376,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TaskIt/TaskIt.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = TaskIt/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};

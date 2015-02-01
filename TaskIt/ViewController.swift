@@ -27,7 +27,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         view.backgroundColor = UIColor(patternImage: UIImage(named: "Background")!)
         
         frc = NSFetchedResultsController(fetchRequest: taskFetchRequest(),
-                                         managedObjectContext: moc!,
+                                         managedObjectContext: ModelManager.instance.managedObjectContext!,
                                          sectionNameKeyPath: "completed",
                                          cacheName: nil)
         frc.delegate = self
@@ -35,6 +35,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         if frc.sections!.count == 0 {
             addExampleData()
         }
+        
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("iCloudUpdated"), name: kCoreDataUpdated, object: nil)
         
     }
     
@@ -89,20 +91,24 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                                  "date": Date.fromYear(2014, month: 11, day: 1),
                                  "completed": true]]
         for data in exampleDataToAdd {
-            let entityDescription = NSEntityDescription.entityForName("TaskModel", inManagedObjectContext: moc!) //Maps entity to persistent store
-            let task = TaskModel(entity: entityDescription!, insertIntoManagedObjectContext: moc!) //
+            let entityDescription = NSEntityDescription.entityForName("TaskModel", inManagedObjectContext: ModelManager.instance.managedObjectContext!) //Maps entity to persistent store
+            let task = TaskModel(entity: entityDescription!, insertIntoManagedObjectContext: ModelManager.instance.managedObjectContext!) //
             task.task = data["task"] as String
             task.subtask = data["subtask"] as String
             task.date = data["date"] as NSDate
             task.completed = data["completed"] as Bool
         }
-        appDelegate.saveContext()
+        ModelManager.instance.saveContext()
     }
     
     func showAlert(message: String = "Contratulations") {
         var alert = UIAlertController(title: "Change Made!", message: message, preferredStyle: .Alert)
         alert.addAction(UIAlertAction(title: "Ok", style: .Default, handler: nil))
         presentViewController(alert, animated: true, completion: nil)
+    }
+    
+    func iCloudUpdated() {
+        tableView.reloadData()
     }
     
     //MARK: UITableViewDataSource
@@ -206,7 +212,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                                                     handler: {(action, index) in
                                                         var task = frc.objectAtIndexPath(index) as TaskModel
                                                         task.completed = !Bool(task.completed)
-                                                        appDelegate.saveContext()})
+                                                        ModelManager.instance.saveContext()})
         completionButton.backgroundColor = .lightGrayColor()
         
         return [completionButton]
@@ -269,7 +275,7 @@ class TaskDetailViewController: UIViewController, UITextFieldDelegate {
         detailTaskModel.task = taskTextField.text
         detailTaskModel.subtask = subtaskTextField.text
         detailTaskModel.date = dueDatePicker.date
-        appDelegate.saveContext() //saved updates to entity we passed in
+        ModelManager.instance.saveContext() //saved updates to entity we passed in
         
         navigationController?.popViewControllerAnimated(true)
         delegate?.taskDetailEdited!() //Um, not great since we called it optional.
@@ -315,8 +321,8 @@ class AddTaskViewController: UIViewController, UITextFieldDelegate {
     }
     
     @IBAction func addButtonPressed(sender: UIButton) {
-        let entityDescription = NSEntityDescription.entityForName("TaskModel", inManagedObjectContext: moc!) //Maps entity to persistent store
-        let task = TaskModel(entity: entityDescription!, insertIntoManagedObjectContext: moc!) //
+        let entityDescription = NSEntityDescription.entityForName("TaskModel", inManagedObjectContext: ModelManager.instance.managedObjectContext!) //Maps entity to persistent store
+        let task = TaskModel(entity: entityDescription!, insertIntoManagedObjectContext: ModelManager.instance.managedObjectContext!) //
         
 //        if NSUserDefaults.standardUserDefaults().boolForKey(kShouldCapitalizeTaskKey) {
 //            task.task = taskTextField.text.capitalizedString
@@ -337,7 +343,7 @@ class AddTaskViewController: UIViewController, UITextFieldDelegate {
         
         task.completed = NSUserDefaults.standardUserDefaults().boolForKey(kCompleteNewTodoKey)
         
-        appDelegate.saveContext()
+        ModelManager.instance.saveContext()
         
 //        var request = NSFetchRequest(entityName: "TaskModel")
 //        var error: NSError? = nil
@@ -490,8 +496,6 @@ class TaskCell: UITableViewCell {
 //MARK: - Model
 
 //MARK: Defines
-let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate //Next line doesn't work without typecast
-let moc = appDelegate.managedObjectContext
 let kAlreadyLoadedKey = "Already Loaded Once"
 
 //MARK: Globals

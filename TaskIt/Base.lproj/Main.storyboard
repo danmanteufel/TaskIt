@@ -188,6 +188,15 @@
                                 <exclude reference="sHj-Li-2jM"/>
                                 <exclude reference="t3z-8a-ot1"/>
                                 <exclude reference="wh0-AG-mOx"/>
+                                <exclude reference="8uh-AG-INR"/>
+                                <exclude reference="995-bF-V3J"/>
+                                <exclude reference="9wB-v3-XVo"/>
+                                <exclude reference="B3J-UG-wm1"/>
+                                <exclude reference="IGR-Zb-e49"/>
+                                <exclude reference="PNX-Lc-iEm"/>
+                                <exclude reference="bzq-r6-v0R"/>
+                                <exclude reference="rsz-5s-0co"/>
+                                <exclude reference="tI6-Bf-1uw"/>
                                 <exclude reference="3eJ-H9-5fp"/>
                                 <exclude reference="EYE-99-pz6"/>
                                 <exclude reference="NCE-Rj-CF4"/>
@@ -200,15 +209,6 @@
                                 <exclude reference="Kyy-EB-YX6"/>
                                 <exclude reference="c9L-tB-KWe"/>
                                 <exclude reference="v1P-Nn-6ce"/>
-                                <exclude reference="8uh-AG-INR"/>
-                                <exclude reference="995-bF-V3J"/>
-                                <exclude reference="9wB-v3-XVo"/>
-                                <exclude reference="B3J-UG-wm1"/>
-                                <exclude reference="IGR-Zb-e49"/>
-                                <exclude reference="PNX-Lc-iEm"/>
-                                <exclude reference="bzq-r6-v0R"/>
-                                <exclude reference="rsz-5s-0co"/>
-                                <exclude reference="tI6-Bf-1uw"/>
                             </mask>
                         </variation>
                         <variation key="heightClass=compact">
@@ -218,15 +218,15 @@
                             <mask key="constraints">
                                 <include reference="V4Y-Iw-kN1"/>
                                 <include reference="nOZ-Ww-ab3"/>
+                                <include reference="B3J-UG-wm1"/>
+                                <include reference="IGR-Zb-e49"/>
+                                <include reference="PNX-Lc-iEm"/>
                                 <include reference="3eJ-H9-5fp"/>
                                 <include reference="EYE-99-pz6"/>
                                 <include reference="nhF-Tg-Wwc"/>
                                 <include reference="Kyy-EB-YX6"/>
                                 <include reference="c9L-tB-KWe"/>
                                 <include reference="v1P-Nn-6ce"/>
-                                <include reference="B3J-UG-wm1"/>
-                                <include reference="IGR-Zb-e49"/>
-                                <include reference="PNX-Lc-iEm"/>
                             </mask>
                         </variation>
                         <variation key="heightClass=regular-widthClass=compact">
@@ -235,12 +235,12 @@
                                 <include reference="HLH-k9-pJM"/>
                                 <include reference="sHj-Li-2jM"/>
                                 <include reference="wh0-AG-mOx"/>
-                                <include reference="b8E-tD-q3E"/>
-                                <include reference="fRx-bo-QF3"/>
-                                <include reference="rle-om-jYq"/>
                                 <include reference="995-bF-V3J"/>
                                 <include reference="bzq-r6-v0R"/>
                                 <include reference="tI6-Bf-1uw"/>
+                                <include reference="b8E-tD-q3E"/>
+                                <include reference="fRx-bo-QF3"/>
+                                <include reference="rle-om-jYq"/>
                             </mask>
                         </variation>
                         <variation key="heightClass=regular-widthClass=regular">
@@ -248,12 +248,12 @@
                                 <include reference="Cnq-bJ-RS2"/>
                                 <include reference="daX-2a-rBc"/>
                                 <include reference="t3z-8a-ot1"/>
-                                <include reference="NCE-Rj-CF4"/>
-                                <include reference="ZKi-Cv-HeH"/>
-                                <include reference="a1r-6m-LYc"/>
                                 <include reference="8uh-AG-INR"/>
                                 <include reference="9wB-v3-XVo"/>
                                 <include reference="rsz-5s-0co"/>
+                                <include reference="NCE-Rj-CF4"/>
+                                <include reference="ZKi-Cv-HeH"/>
+                                <include reference="a1r-6m-LYc"/>
                             </mask>
                         </variation>
                     </view>
